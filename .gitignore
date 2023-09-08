@@ -1,0 +1,7 @@
+*.session
+*.session-journal
+.env
+venv/
+__pycache__
+model_train/output
+model_server/dummy_main.py

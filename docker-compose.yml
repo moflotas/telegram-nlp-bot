@@ -1,0 +1,59 @@
+services:
+  bot:
+    build:
+      context: bot
+      dockerfile: ../Dockerfile
+    environment:
+      - DB_CONNECTION_STRING=mongodb://mongodb
+      - RABBITMQ_CONNECTION_STRING=amqp://rabbitmq
+      - API_ID=${API_ID}
+      - API_HASH=${API_HASH}
+      - BOT_TOKEN=${BOT_TOKEN}
+      - PREFIX=${PREFIX}
+    depends_on:
+      mongodb:
+        condition: service_started
+      rabbitmq:
+        condition: service_started
+
+  server1:
+    build:
+      context: model_server
+      dockerfile: ../Dockerfile
+    environment:
+      - RABBITMQ_CONNECTION_STRING=amqp://rabbitmq
+      - MODEL_DIR=/models
+      - PYTHONUNBUFFERED=0
+    depends_on:
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - ${MODEL_DIR}:/models
+
+  server2:
+    build:
+      context: model_server
+      dockerfile: ../Dockerfile
+    environment:
+      - RABBITMQ_CONNECTION_STRING=amqp://rabbitmq
+      - MODEL_DIR=/models
+      - PYTHONUNBUFFERED=0
+    depends_on:
+      rabbitmq:
+        condition: service_started
+    volumes:
+      - ${MODEL_DIR}:/models
+
+  mongodb:
+    image: "mongo:latest"
+    volumes:
+      - mongodata:/data/db
+    restart: always
+
+  rabbitmq:
+    image: rabbitmq:3.12.4-management
+    hostname: rabbitmq
+    restart: always
+
+volumes:
+  mongodata:
